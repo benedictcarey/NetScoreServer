@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Cursor Client</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- set to the IP of your server, I use MAMP or WAMP to serve this page over port 8888 (apache)--> 
+   <script src="http://127.0.0.1:8888/jquery.min.js"></script>
+    <style>
+        section { padding:10px; margin:0 0 10px; background:White }
+        a { cursor:pointer; display:block; background: White; padding:10px; margin:0 0 3px }
+    </style>
+    <script>
+   </script>
+        <TABLE border="1">
+            <TR><TD>server</TD><TD id="server"></TD></TR>
+            <TR><TD>client</TD><TD id="client"></TD></TR>
+            <TR><TD>delay</TD>
+                <TD id="delay" style="text-align: right"></TD></TR>
+        </TABLE>
+
+        <SCRIPT src="ServerDate-master/lib/ServerDate.js"></SCRIPT>
+        <SCRIPT>
+        var clockDifferenz = 0;
+        var delayTime = 0;
+        ServerDate.synchronizationIntervalDelay = 5000;
+// sync done with Serverdate.js
+// Display two real time clocks, the server's and the client's, and show the
+// difference between them in milliseconds.
+
+function updateClocks()
+{
+    var client = new Date();
+
+    document.getElementById("server").innerHTML = String(ServerDate);
+    document.getElementById("client").innerHTML = String(client);
+    
+    clockDifferenz =  (ServerDate - client);
+    
+    document.getElementById("delay").innerHTML = clockDifferenz
+        + " &plusmn; " + ServerDate.getPrecision() + " ms";
+}
+	updateClocks();
+	setInterval(updateClocks, 100);
+</SCRIPT>
+</head>
+<body onload="init('canvas')">
+<input style="height:26px;width:26px;font-size:16px;" type="text" id="txtbox" value="1" ;>
+<button style="height:26px;width:66px;font-size:12px;" onclick="getPart()">Part</button>
+<button id="goFS"style="height:26px;width:66px;font-size:12px;" >Fullscreen</button>
+<div id="txt"></div><p id="message"></p><p id="message2"></p>
+<img id="image"></<img>
+<script>
+var Opac4 = "0.8";
+//here you set the IP and port to use for your websocket traffic
+var ws = new WebSocket( " ws://127.0.0.1:8086/ " ) ;
+var txtX = "ready";
+ws.binaryType = "arraybuffer";
+ws.onopen = function() {
+currentPage = 1;
+document.getElementById("message").innerHTML = "connected - select part";
+var tid = setInterval(reopen, 20000);
+   function reopen() {
+   ws.send("501");
+ }
+}
+
+ws.onmessage = function (evt) {
+var bytes = new Uint8Array(evt.data);
+var data = "";
+var len = bytes.byteLength;
+for (var i = 0; i < len; ++i) {
+data += String.fromCharCode(bytes[i]);
+}
+	if (data[1] == "P") 
+	{
+		var img = document.getElementById("image");
+		score.src = "data:image/png;base64,"+window.btoa(data);
+	}
+	else
+	{	
+		 curs2(data);
+	}
+}
+
+var goFS = document.getElementById("goFS");
+  document.getElementById("goFS").addEventListener("click", function() {
+    var el = document.documentElement,
+      rfs = el.requestFullscreen
+        || el.webkitRequestFullScreen
+        || el.mozRequestFullScreen
+        || el.msRequestFullscreen 
+    ;
+
+    rfs.call(el);
+});
+  
+function abortTimer() { // to be called when you want to stop the timer
+  clearInterval(blink);
+}
+
+function setTone(i) {;
+document.getElementById("message2").innerHTML = i;
+oscillator.frequency.value = x[0];
+}
+
+function muteTone() {
+document.getElementById("message2").innerHTML = "muted";
+gainNode.gain.value = 0.;
+}
+
+function nextTone() {
+currentTone = currentTone + 1;
+document.getElementById("message2").innerHTML = (currentTone + 1) + " " + x[currentTone];
+oscillator.frequency.value = x[currentTone];
+gainNode.gain.value = 0.1;
+}
+
+function lastTone() {
+if (currentTone > 0) {
+currentTone = currentTone - 1;
+document.getElementById("message2").innerHTML = (currentTone + 1) + " " + x[currentTone];
+oscillator.frequency.value = x[currentTone];
+gainNode.gain.value = 0.1;
+	}
+}
+
+function getPart() {
+ws.send("0");
+ws.send(document.getElementById("txtbox").value);
+document.getElementById("message").innerHTML = "Part " + document.getElementById("txtbox").value
+currentPage = Number(document.getElementById("txtbox").value);
+}
+
+function lastPage() {
+currentPage = Number(currentPage - 100);
+document.getElementById("message").innerHTML = "Part " + currentPage;
+currentPageOut = currentPage + '';
+ws.send(currentPageOut);
+}
+
+function nextPage() {
+currentPage = Number(currentPage + 100);
+document.getElementById("message").innerHTML = "Part " + currentPage;
+currentPageOut = currentPage + '';
+ws.send(currentPageOut);
+}
+
+function stopRefresh() {
+ws.send("0");
+gainNode.gain.value = 0.;
+}
+
+// see http://www.techotopia.com/index.php/JavaScript_and_CSS_-_Dynamic_Styles_and_Layers
+</script>
+<section>
+<div id="canvasesdiv" style="position:relative; width:400px; height:300px"><span id="time"></span>
+<img id="image"></<img>
+<canvas id="layer1"
+style="z-index: 1;
+position:absolute;
+left:0px;
+top:0px;
+" height="300px" width="400">
+This text is displayed if your browser does not support HTML5 Canvas.
+</canvas>
+<canvas id="layer2"
+style="z-index: 2;
+position:absolute;
+left:0px;
+top:0px;
+" height="1200" width="1000">
+This text is displayed if your browser does not support HTML5 Canvas.
+</canvas>
+<canvas id="layer3"
+style="z-index: 3;
+position:absolute;
+left:0px;
+top:0px;
+" height="300px" width="400">
+This text is displayed if your browser does not support HTML5 Canvas.
+</canvas>
+<canvas id="layer4"
+style="z-index: 4;
+position:absolute;
+left:60px;
+top:30px;
+" height="60px" width="2">
+This text is displayed if your browser does not support HTML5 Canvas.
+</canvas>
+</div>
+
+<script type="text/javascript">
+var layer1;
+var layer2;
+var layer3;
+var layer4;
+var ctx1;
+var ctx2;
+var ctx3;
+var ctx4;
+var x = 400;
+var y = 300;
+var x2 = 400;
+var y2 = 300
+var dx = 2;
+var dy = 4;
+var dx2 = 2;
+var dy2 = 4;
+var WIDTH = 400;
+var HEIGHT = 300;
+var score = new Image();
+
+var square = {
+    'x': 50,
+    'y': 50,
+    'width': 100,
+    'height': 100,
+    'fill': '#000000'
+};
+
+function init() {
+score.src ="city.png";
+layer1 = document.getElementById("layer1");
+ctx1 = layer1.getContext("2d");
+layer2 = document.getElementById("layer2");
+ctx2 = layer2.getContext("2d");
+layer3 = document.getElementById("layer3");
+ctx3 = layer3.getContext("2d");
+setInterval(drawAll, 60);
+layer4 =document.getElementById("layer4");
+ctx4 = layer4.getContext("2d");
+}
+
+function drawAll() {
+draw1();
+draw2();
+draw3();
+draw4();
+}
+
+function draw1() {
+
+}
+
+function draw2() {
+ctx2.clearRect(0, 0, WIDTH, HEIGHT);
+ctx2.drawImage(score, 0, 0);
+layer2.style.opacity = "0.9";
+}
+
+function draw3() {
+
+}
+
+function blink() { 
+	// var today = new Date();
+//     var h = today.getHours();
+//     var m = today.getMinutes();
+    var s = ServerDate.getUTCSeconds() - ServerDate.getPrecision();
+//     m = checkTime(m);
+    s = checkTime(s);
+    s = s % 2;
+    if (s == 0) {
+    Opac4 = 0;
+    }
+    else if (s == 1) {
+    Opac4 = 1;
+    }
+    // document.getElementById('txt').innerHTML = s;
+	 var t = setTimeout(blink, 1);
+	 
+ }
+
+function checkTime(i) {
+    if (i < 10) {i = "0" + i};  // add zero in front of numbers < 10
+    return i;
+}
+
+
+function draw4() {
+ctx4.clearRect(0, 0, 1280, 720);
+ctx4.fillStyle = "#0846e0";
+ctx4.beginPath();
+ctx4.rect(0,0,WIDTH,HEIGHT);
+ctx4.closePath();
+ctx4.fill();
+ctx4.fillStyle = "#444444";
+ctx4.beginPath();
+ctx4.arc(x2, y2, 20, 0, Math.PI*2, true);
+ctx4.closePath();
+ctx4.fill();
+layer4.style.opacity = Opac4;
+}
+
+function hide() {
+
+}
+
+function unhide() {
+
+}
+
+function stop() {
+
+}
+
+function curs2(x) {
+// draw cursor
+	x = x.split(" ");
+	// Display the clocks and update them every msecond.
+	//document.getElementById("message").innerHTML = "cursor message for cursor " + x[1] + " received";
+	if (x[2] == "hide") {
+	Opac4 = 0;	
+	document.getElementById("message").innerHTML = "cursor " + x[1] + " has been hidden ";
+	}
+	else if (x[2] == "unhide") {
+	Opac4 = 1;	
+	document.getElementById("message").innerHTML = "cursor " + x[1] + " has been unhidden ";
+	}
+	else if (x[2] == "start") {	
+	document.getElementById("message").innerHTML = "cursor " + x[1] + " started ";
+	}
+	else if (x[2] == "stop") {	
+	document.getElementById("message").innerHTML = "cursor " + x[1] + " stopped ";
+	stop();
+	}
+	else if (x[2] == "blink") {	
+	//document.getElementById("message").innerHTML = "cursor " + x[1] + " is blinking ";
+	blink();
+	}
+	else if (x[2] == "unblink") {	
+	document.getElementById("message").innerHTML = "cursor " + x[1] + " is not blinking ";
+	}
+	else if (x[2] == "resume") {	
+	document.getElementById("message").innerHTML = "cursor " + x[1] + " has resumed ";
+	}
+	else if (x[0] == "cursor") {
+	delayTime = (parseInt(x[7], 10) - ( ServerDate.getPrecision()/2) );
+	setTimeout(function() {
+	var elem = document.getElementById("layer" + x[1]);
+	var xmin = parseInt(x[2], 10), xmax = parseInt(x[3], 10), ymin = parseInt(x[4], 10), ymax = parseInt(x[5], 10);
+	var count = xmin;
+	var step = 1;
+	elem.style.top = ymax + 'px';
+	var counter = setInterval(function() {
+    if (count >= xmax) // when we're outside the range
+        clearInterval(counter); // stop counter
+    else
+    count += step;
+    elem.style.left = count + 'px';
+	}, x[6]);
+	}, delayTime );
+	}
+}
+
+function curs1(x) {
+// Score duration
+x = x.split(" ");
+if (x[0] == "/Control/SetDuration") {  
+	var duration = x[1];
+ 	document.getElementById("message").innerHTML = "Score duration is set to " + duration;
+	}
+	
+else if (x[0] == "/Control/SetOptions") {
+	var options = x[1];
+	document.getElementById("message").innerHTML = "Score options are set to  " + options;
+	}
+	
+else if (x[0] == "/Control/Play") {
+	var options = x[1];
+	document.getElementById("message").innerHTML = "Play Started";
+	}
+else if (x[0] == "/Control/Reset") {
+	var options = x[1];
+	document.getElementById("message").innerHTML = "Score reset to initial state";
+	}
+else if (x[0] == "/Tick") {
+ var tick = x[1];
+ document.getElementById("message").innerHTML = "Current Tick value is " + tick;
+}
+else if (x[0] == "/Scroll") {
+scoreMove()
+}
+// Seek commands for layers
+else if (x[0] == "/Control/Seek") {
+document.getElementById("message").innerHTML = (x[0]+ " " + x[1] + " " + x[2] + " " + x[3] + " " + x[4] + " " + x[5] + " " + x[6] + " " + x[7])
+  var lay = "layer" + x[1];
+  var elem = document.getElementById("layer" + x[1]);
+  var xpos = x[2];
+  var ypos = x[4];
+  var xmax = x[3];
+  var ssize = x[7];
+   //var id = setInterval(seeker, 0.1);
+  // seeker(elem, xpos, id, xmax),
+   frame(x, elem, xpos, ypos, xmax, ssize);
+   }
+  else if (x[0] == "cursor") {
+  curs2(x)
+ }
+}
+
+function frame(x, elem, xpos, ypos, xmax, ssize) {
+var count = parseInt(xpos, 10), step = parseInt(ssize, 10), yCount = parseInt(ypos, 10);
+elem.style.top = yCount + 'px';
+var counter = setInterval(function() {
+    if (count >= xmax) // when we're outside the range
+        clearInterval(counter); // stop counter
+    else
+    count += step;
+    //document.getElementById("message").innerHTML = "Current Tick value is " + count;
+    document.getElementById("message").innerHTML = "y = " + yCount;
+    elem.style.left = count + 'px';
+	}, x[6]);
+}	
+
+function scoreMove() {
+var elem = document.getElementById("layer4");
+  var pos = 0;
+  var id = setInterval(frame, 0.1);
+  function frame() {
+    if (pos == -13200) {
+      clearInterval(id);
+    } else {
+      pos--;
+      //elem.style.top = pos + 'px';
+      elem.style.left = pos + 'px';
+    }
+  }
+}
+init();
+
+</script>
+</section>
+</body>
+</html>
+
+
