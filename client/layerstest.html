@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html>
+
+
+
+
+
+
+
+
+
+<head>
+
+<title>Canvas Layers</title>
+<meta charset="UTF-8">
+
+</head>
+
+<body onload="init('canvas')">
+<h2>MaxScore.NetScore Example</h2>
+<p>
+<button onclick="curs1()">Move Cursor</button>
+</p>
+<p>
+<button onclick="scoreMove()">Move Score</button>
+</p>
+<p id="message"></p>
+<input type="text" id="txtbox" value="1">
+<button onclick="getPart()">Part</button>
+<button onclick=ws.send("0")>Stop</button><br>
+<p>Request a part by entering a number into the</p>
+<p>text box and clicking the Part button.</p>
+<p> Stop the score from reloading with the Stop button</p>
+<img id="image"></<img>
+<script>
+var ws = new WebSocket( " ws://127.0.0.1:8080/ " ) ;
+
+ws.binaryType = "arraybuffer";
+
+ws.onopen = function() {
+alert("Opened");
+};
+
+ws.onmessage = function (evt) {
+var bytes = new Uint8Array(evt.data);
+var data = "";
+var len = bytes.byteLength;
+for (var i = 0; i < len; ++i) {
+data += String.fromCharCode(bytes[i]);
+}
+	if (data[1] == "P") 
+	{
+		var img = document.getElementById("image");
+		score.src = "data:image/png;base64,"+window.btoa(data);
+	}
+	else {
+		//document.getElementById("demo").innerHTML = (data);
+		curs1(data);
+	}
+}
+var button = document.getElementById("button")
+button.onclick = function() {
+ws.send("pbbutton play");
+};
+
+function getPart() {
+// document.getElementById("txtbox").value = "2";
+ws.send("0");
+ws.send(document.getElementById("txtbox").value);
+}
+
+
+  
+</script>
+<section>
+
+<div id="canvasesdiv" style="position:relative; width:400px; height:300px">
+<img id="image"></<img>
+<canvas id="layer1"
+style="z-index: 1;
+position:absolute;
+left:0px;
+top:0px;
+" height="300px" width="400">
+This text is displayed if your browser does not support HTML5 Canvas.
+</canvas>
+<canvas id="layer2"
+style="z-index: 2;
+position:absolute;
+left:0px;
+top:0px;
+" height="220px" width="13200">
+This text is displayed if your browser does not support HTML5 Canvas.
+</canvas>
+<canvas id="layer3"
+style="z-index: 3;
+position:absolute;
+left:0px;
+top:0px;
+" height="300px" width="400">
+This text is displayed if your browser does not support HTML5 Canvas.
+</canvas>
+<canvas id="layer4"
+style="z-index: 4;
+position:absolute;
+left:60px;
+top:45px;
+" height="30px" width="20">
+This text is displayed if your browser does not support HTML5 Canvas.
+</canvas>
+</div>
+
+<script type="text/javascript">
+var layer1;
+var layer2;
+var layer3;
+var layer4;
+var ctx1;
+var ctx2;
+var ctx3;
+var ctx4;
+var x = 400;
+var y = 300;
+var x2 = 400;
+var y2 = 300
+var dx = 2;
+var dy = 4;
+var dx2 = 2;
+var dy2 = 4;
+var WIDTH = 400;
+var HEIGHT = 300;
+var score = new Image();
+
+var square = {
+    'x': 50,
+    'y': 50,
+    'width': 100,
+    'height': 100,
+    'fill': '#000000'
+};
+
+function init() {
+score.src ="city.png";
+layer1 = document.getElementById("layer1");
+ctx1 = layer1.getContext("2d");
+layer2 = document.getElementById("layer2");
+ctx2 = layer2.getContext("2d");
+layer3 = document.getElementById("layer3");
+ctx3 = layer3.getContext("2d");
+setInterval(drawAll, 20);
+layer4 =document.getElementById("layer4");
+ctx4 = layer4.getContext("2d");
+}
+
+function drawAll() {
+draw1();
+draw2();
+draw3();
+draw4();
+}
+
+function draw1() {
+
+}
+
+function draw2() {
+ctx2.clearRect(0, 0, WIDTH, HEIGHT);
+ctx2.drawImage(score, 0, 0);
+layer2.style.opacity = "0.9";
+}
+
+function draw3() {
+
+}
+
+function draw4() {
+ctx4.clearRect(0, 0, 1320, 220);
+ctx4.fillStyle = "#90EE90";
+ctx4.beginPath();
+ctx4.rect(0,0,WIDTH,HEIGHT);
+ctx4.closePath();
+ctx4.fill();
+ctx4.fillStyle = "#444444";
+ctx4.beginPath();
+ctx4.arc(x2, y2, 20, 0, Math.PI*2, true);
+ctx4.closePath();
+ctx4.fill();
+layer4.style.opacity = "0.8";
+}
+
+function curs1(x) {
+x = x.split(" ");
+document.getElementById("message").innerHTML = (x[0]+ " " + x[1] + " " + x[2] + " " + x[3] + " " + x[4] + " " + x[5])
+  var lay = "layer" + x[0];
+  var elem = document.getElementById("layer" + x[0]);
+  var xpos = x[1];
+  var ypos = x[3];
+  var id = setInterval(frame, x[5]);
+  var id2 = setInterval(frame, x[5]);
+function frame() {
+    if (xpos == x[2]) {
+      clearInterval(id);
+    } else {	
+      xpos++;
+      elem.style.left = xpos + 'px';
+    }
+    if (ypos == x[4]) {
+      clearInterval(id2);
+    } else {
+      ypos++
+      elem.style.top = ypos + 'px';
+  	}
+  }
+}
+
+function scoreMove() {
+var elem = document.getElementById("layer2");
+  var pos = 0;
+  var id = setInterval(frame, 0.1);
+  function frame() {
+    if (pos == -13200) {
+      clearInterval(id);
+    } else {
+      pos--;
+      //elem.style.top = pos + 'px';
+      elem.style.left = pos + 'px';
+    }
+  }
+}
+init();
+
+</script>
+</section>
+
+</body>
+</html>
